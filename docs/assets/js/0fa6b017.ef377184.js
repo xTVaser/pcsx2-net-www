@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkpcsx_2_net=self.webpackChunkpcsx_2_net||[]).push([[5815],{63955:e=>{e.exports=JSON.parse('{"permalink":"/pcsx2-net-www/blog","page":1,"postsPerPage":10,"totalPages":19,"totalCount":185,"nextPage":"/pcsx2-net-www/blog/page/2","blogDescription":"Blog","blogTitle":"Blog"}')}}]);

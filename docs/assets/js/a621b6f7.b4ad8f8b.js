@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkpcsx_2_net=self.webpackChunkpcsx_2_net||[]).push([[8620],{74159:e=>{e.exports=JSON.parse('[{"label":"progress-report","permalink":"/pcsx2-net-www/blog/tags/progress-report","count":38},{"label":"devblog","permalink":"/pcsx2-net-www/blog/tags/devblog","count":138}]')}}]);

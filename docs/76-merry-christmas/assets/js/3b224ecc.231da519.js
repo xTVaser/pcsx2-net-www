@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkpcsx_2_net=self.webpackChunkpcsx_2_net||[]).push([[75],{62033:e=>{e.exports=JSON.parse('{"permalink":"/blog/tags/progress-report/page/4","page":4,"postsPerPage":10,"totalPages":4,"totalCount":38,"previousPage":"/blog/tags/progress-report/page/3","blogDescription":"Blog","blogTitle":"Blog"}')}}]);

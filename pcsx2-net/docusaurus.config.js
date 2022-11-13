@@ -10,7 +10,7 @@ const config = {
   title: 'PCSX2',
   tagline: 'An Open-Source PS2 Emulator',
   url: 'https://pcsx2.net',
-  baseUrl: '/',
+  baseUrl: '/pcsx2-net-www/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   favicon: 'img/favicon.webp',

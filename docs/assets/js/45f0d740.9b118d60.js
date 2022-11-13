@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkpcsx_2_net=self.webpackChunkpcsx_2_net||[]).push([[546],{44950:e=>{e.exports=JSON.parse('{"permalink":"/pcsx2-net-www/blog/tags/progress-report/page/4","page":4,"postsPerPage":10,"totalPages":4,"totalCount":38,"previousPage":"/pcsx2-net-www/blog/tags/progress-report/page/3","blogDescription":"Blog","blogTitle":"Blog"}')}}]);
