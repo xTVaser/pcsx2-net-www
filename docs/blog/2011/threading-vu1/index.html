@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="blog-wrapper blog-post-page plugin-blog plugin-id-default">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v2.2.0">
+<title data-rh="true">Threading Vu1 | PCSX2</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://pcsx2.net/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://pcsx2.net/img/logo.png"><meta data-rh="true" property="og:url" content="https://pcsx2.net/blog/2011/threading-vu1"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="Threading Vu1 | PCSX2"><meta data-rh="true" name="description" content="Getting pcsx2 to use more cores is something many people have asked for, and they wondered why we werent doing it"><meta data-rh="true" property="og:description" content="Getting pcsx2 to use more cores is something many people have asked for, and they wondered why we werent doing it"><meta data-rh="true" property="og:type" content="article"><meta data-rh="true" property="article:published_time" content="2011-08-14T00:00:00.000Z"><meta data-rh="true" property="article:tag" content="devblog"><link data-rh="true" rel="icon" href="/img/favicon.webp"><link data-rh="true" rel="canonical" href="https://pcsx2.net/blog/2011/threading-vu1"><link data-rh="true" rel="alternate" href="https://pcsx2.net/blog/2011/threading-vu1" hreflang="en"><link data-rh="true" rel="alternate" href="https://pcsx2.net/blog/2011/threading-vu1" hreflang="x-default"><link rel="alternate" type="application/rss+xml" href="/blog/rss.xml" title="PCSX2 RSS Feed">
+<link rel="alternate" type="application/atom+xml" href="/blog/atom.xml" title="PCSX2 Atom Feed">
+<link rel="alternate" type="application/json" href="/blog/feed.json" title="PCSX2 JSON Feed">
+
+
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"><link rel="stylesheet" href="/assets/css/styles.8125b5be.css">
+<link rel="preload" href="/assets/js/runtime~main.29d2e02b.js" as="script">
+<link rel="preload" href="/assets/js/main.ce2c7a2d.js" as="script">
+</head>
+<body class="navigation-with-keyboard">
+<script>!function(){function e(e){document.documentElement.setAttribute("data-theme",e)}var t=function(){var e=null;try{e=localStorage.getItem("theme")}catch(e){}return e}();null!==t?e(t):window.matchMedia("(prefers-color-scheme: dark)").matches?e("dark"):window.matchMedia("(prefers-color-scheme: light)").matches?e("light"):e("dark")}()</script><div id="__docusaurus">
+<div data-overlay-container="true"><div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#docusaurus_skipToContent_fallback">Skip to main content</a></div><nav class="navbar navbar--fixed-top"><div class="navbar__inner"><div class="navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/img/logo.webp" alt="My Site Logo" class="themedImage_ToTc themedImage--light_HNdA"><img src="/img/logo.webp" alt="My Site Logo" class="themedImage_ToTc themedImage--dark_i4oU"></div><b class="navbar__title text--truncate">PCSX2</b></a><a class="navbar__item navbar__link" href="/downloads">Download</a><a class="navbar__item navbar__link" href="/compat">Compatibility</a><a class="navbar__item navbar__link" href="/docs/">Documentation</a><div class="navbar__item dropdown dropdown--hoverable"><a aria-current="page" class="navbar__link active" aria-haspopup="true" aria-expanded="false" role="button" href="/blog">Blog</a><ul class="dropdown__menu"><li><a class="dropdown__link" href="/blog/tags/progress-report">Progress Reports</a></li><li><a class="dropdown__link" href="/blog/tags/devblog">Developer Blogs</a></li></ul></div></div><div class="navbar__items navbar__items--right"><a class="nextui-c-iWjDFM nextui-c-PJLV nextui-c-iWjDFM-hkKLfu-color-default nextui-c-iWjDFM-gkIlwi-size-md nextui-c-iWjDFM-cwXrJp-borderWeight-normal nextui-c-iWjDFM-exaRme-auto-true nextui-c-iWjDFM-gglxka-cv nextui-c-PJLV-gulvcB-isFocusVisible-false nextui-c-iWjDFM-iiPoHku-css nextui-button nextui-button--ready" data-state="ready" role="button" tabindex="0" href="https://github.com/sponsors/PCSX2" target="_blank" type="button" rel="noreferrer"><span class="nextui-c-bDGMeb nextui-c-bDGMeb-jzMUFa-isAuto-true nextui-c-bDGMeb-hjqCeZ-cv nextui-c-bDGMeb-iPJLV-css nextui-button-icon"><svg stroke="currentColor" fill="var(--nextui-colors-red600)" stroke-width="0" viewBox="0 0 12 16" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9 2c-.97 0-1.69.42-2.2 1-.51.58-.78.92-.8 1-.02-.08-.28-.42-.8-1-.52-.58-1.17-1-2.2-1-1.632.086-2.954 1.333-3 3 0 .52.09 1.52.67 2.67C1.25 8.82 3.01 10.61 6 13c2.98-2.39 4.77-4.17 5.34-5.33C11.91 6.51 12 5.5 12 5c-.047-1.69-1.342-2.913-3-3z"></path></svg></span><div class="nextui-button-text nextui-button-text-left">Donate</div></a><a href="https://forums.pcsx2.net/" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">Forums</a><a href="https://wiki.pcsx2.net/" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">Wiki</a><a href="https://discord.com/invite/TCz3t9k" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-discord-link" aria-label="PCSX2 Discord Server"></a><a href="https://github.com/PCSX2/pcsx2" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="PCSX2 GitHub repository"></a><a href="https://twitter.com/PCSX2" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-twitter-link" aria-label="PCSX2 Twitter"></a><a href="https://www.youtube.com/user/PCSX2team" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-youtube-link" aria-label="PCSX2 YouTube channel"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="Switch between dark and light mode (currently dark mode)" aria-label="Switch between dark and light mode (currently dark mode)" aria-live="polite"><svg viewBox="0 0 24 24" width="24" height="24" class="lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" class="darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg></button></div><div class="searchBox_ZlJk"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="docusaurus_skipToContent_fallback" class="main-wrapper mainWrapper_z2l0"><div class="container margin-vert--lg"><div class="row"><main class="col col--9 col--offset-1" itemscope="" itemtype="http://schema.org/Blog"><article itemprop="blogPost" itemscope="" itemtype="http://schema.org/BlogPosting"><header><h1 class="title_f1Hy" itemprop="headline">Threading Vu1</h1><div class="container_mt6G margin-vert--md"><time datetime="2011-08-14T00:00:00.000Z" itemprop="datePublished">August 14, 2011</time> · <!-- -->16 min read</div><div class="margin-top--md margin-bottom--sm row"><div class="col col--6 authorCol_Hf19"><div class="avatar margin-bottom--sm"><div class="avatar__intro" itemprop="author" itemscope="" itemtype="https://schema.org/Person"><div class="avatar__name"><span itemprop="name">cottonvibes</span></div></div></div></div></div></header><div id="post-content" class="markdown" itemprop="articleBody"><p>Well if you&#x27;ve kept up with pcsx2&#x27;s
+SVN, you&#x27;ll notice we recently added a
+MTVU (Multi-Threaded microVU1) option, which runs VU1 on its own
+thread.</p><p>Getting pcsx2 to use more cores is something many people have asked for,
+and they wondered why we werent doing it. Some users would go as far as
+to flame us pcsx2 coders saying we didnt have the skills to do it or
+would say some other nonsense.</p><p>In reality, there are plenty of reasons why its taken so long for us to
+code something like MTVU. The key reason is that emulation in general
+does not lend itself well to threading components. If you want to be
+safe and accurate at a hardware emulation level, you generally take the
+approach of running the core CPU of the system (the EE-core in ps2s
+case), and then based off the cycles you ran the CPU for, you time the
+execution of all the other processing units in the system (DMAC (GIF,
+VIF, SIF, ), VU0/VU1, IPU, IOP, etc).</p><p>If you try to naively thread the components in the above model, youll
+have 2 huge problems which may not be apparent to non-emu coders. One
+problem is that threading the components (say GIF and VU1) at the same
+time, will lead to very bad syncing errors if the GIF and VU1 need to
+communicate with each other (and they do). The other problem is that
+just running a component on a thread is actually going to be a slow-down
+unless the thread is doing a lot of work without having to sync with
+other components. As an example, both Jake Stine (Air) and I have in the
+past experimented with naively threading VU1, and in addition to getting
+unstable graphics and crashes, our attempts also ran slower.</p><p>So now you may be wondering, If threading has all those problems how can
+you get a speedup? Well we had to be smart about it, and figure out a
+way to make threading work based on the properties of the hardware. One
+thing we know is that for a component to even be worth-while to thread,
+it needs to have relatively low interaction with other components (which
+will limit the amount of syncing needed with other components; and
+therefore increase the thread throughput), and it also needs to be a
+component that is used frequently and is computationally expensive to
+emulate (or else theres no point in threading it). Luckily the GS fit
+that bill very well (which gave us MTGS), and to a lesser extent VU1
+does (giving us MTVU).</p><p><img loading="lazy" src="data:image/webp;base64,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" width="430" height="248" class="img_ev3q">
+(Some key components in the ps2; these arent drawn to any relative
+scale)</p><p>In the above diagram, I have drawn some of the key components which must
+be considered when threading VU1 and the GS. The dark arrows show common
+data paths where data is transferred frequently between the components
+in games. The white arrow heads show data paths that are possible in
+games, but are rarely used due to various reasons. There are some more
+data paths and more components to the ps2, but theyre excluded for
+simplicity (the actual grouping of the components in the ps2 also is a
+bit different, but drawing them that way would complicate the
+diagram).</p><p>Just so youre not left in the dark Ill briefly explain what the above
+components are used for. The EE-core is the main CPU of the ps2 and
+mostly handles game logic; using the GIF FIFO and Path 3, games
+generally send image data (textures) to the GS (the gpu of the ps2). VU1
+(Vector Unit 1) is used for coordinate, matrix, and vector calculations
+games need to do for 3d graphics; when its done calculating it sends the
+processed data over to the GS via GIFs Path 1. The VIF1 unit is in
+charge of sending micro-programs to VU1, unpacking compressed data to
+VU1s data memory, signaling VU1 to start executing its micro-program,
+and it also can send data to the GS via GIFs Path 2. The GIF Unit is in
+charge of managing the Path 1/2/3 transfers that are being sent to the
+GS, and it does this according to path priority (Path 1 <!-- -->&gt;<!-- --> Path 2 <!-- -->&gt;<!-- -->
+Path 3) and some other specific rules.</p><p>If you notice in the diagram, the GS (Graphics Synthesizer) has data
+coming into it frequently, and rarely ever needs to send data back to
+other components. When threading the GS, what we essentially do is
+buffer GIF transfers that are being sent to the GS, and then once we
+have enough buffered data we kick-start the MTGS thread and have it
+start processing the GIF packets we previously buffered. While its
+processing this buffered data, the EE main thread is still running and
+more GIF transfers are being buffered so that MTGS can process them when
+it gets the chance</p><p>The key to making something like this work from an emulation standpoint
+is that the main emulation thread thinks that nothing is being threaded
+at all; it sends data to the GIF Unit like normal, and this gets
+processed according to the timing information from the EE core. However
+that GIF transfer data is being buffered which allows the MTGS thread to
+process the buffered data in parallel with the main emulation thread. If
+you notice though this design means that the MTGS thread is actually
+running behind the main emulation thread in terms of the data its
+processing, because the buffered data is old data that the main
+emulation thread has generated. The only time this can be a problem, is
+if the main emulation thread ever needs to read back data from the MTGS
+thread. In this case what needs to happen is the main emulation thread
+needs to stall and wait until the MTGS thread is done processing. Once
+that is done, the MTGS thread should have up-to-date status information,
+and the main emulation thread can read back the appropriate data from
+the MTGS thread. This syncing is slow and if emulation needs to do it a
+lot it eliminates the speedup from threading (and can even be a big
+slowdown), however as noted in the above diagram, the GS rarely ever
+needs to transfer data back; so that means threading the GS is almost
+always a speedup for us.</p><p>Now that we understand the basics of how the MTGS thread works, we can
+move onto MTVU. Since the GS was already the best candidate for
+threading in a ps2 emulator, it meant that threading any other component
+would be even more of a challenge. From analyzing pcsx2s activity and
+design, the next component that made sense to thread was VU1. It is
+relatively isolated compared to the other components, and it takes a lot
+of computation power to emulate. However, there are some big problems
+which must be solved to get a fast and working threaded VU1.</p><p>One of the problems deals with what was talked about in the beginning of
+this article, how typical emulation runs the different components based
+off the cycles of the main CPU. With the typical emulation approach we
+would run the EE for say 2048 cycles, and then we would run VU1 for its
+equivalent amount of cycles which would be 1024 vu cycles (VU1 runs at
+half the clock speed of the EE). This approach would be very problematic
+for us with threading, because it would mean VU1 doesnt run long enough
+for threading to be a speedup. However we are very fortunate because on
+the PS2 games cant be as cycle-critical as they are with older systems.
+Any well coded ps2 game has to have thread safe code and account for
+possible timing inconsistencies (if the game doesnt do this, then it
+likely wont be stable on the real console, or between minor variations
+of the console). This means we can generally get away with running VU1
+programs disregarding EE timing completely, and pcsx2 has actually been
+using this approach for VU1 for years now (because even in a
+non-threaded design its faster to emulate this way). Instead of running
+VU1 for X amount of cycles based off EE cycles, we have code it so that
+VU1 executes its complete micro-program till its finished. This is great
+news for threading VU1 because it means that we can run VU1 on a thread
+regardless of any EE timing and it wont be a problem. It also means that
+since VU1 has been running in its entirety this whole time, from the EEs
+point of view it has always seen that VU1s status is finished (because
+it never gets a chance to read the status as executing). This means that
+you can actually queue multiple VU1 programs, and run them at a later
+time as far as the EE is concerned, because it doesnt really care about
+VU1s status. This is even more good news for threading since it means
+more through-put for the VU1 thread if it can be queuing and
+sequentially executing multiple VU1 programs (as opposed to running only
+one VU1 program while the EE waits on it to finish).</p><p>There is another big problem with VU1 threading however: the VU1
+processor works closely with the GIF Unit, and the GIF Unit is timed and
+executed according to the main emulation thread. So that means sending
+data to the GIF Unit from the VU1 thread would be at totally incorrect
+times with respect to core emulation timing. Now our solution for this
+is a bit tricky. What we end up doing is assume every VU1 program will
+send data to the GIF Unit. So immediately when the main emulation thread
+finds out it needs to execute a VU1 program, it sends a fake GIF
+transfer packet to pcsx2s GIF Unit (and immediately after starts
+executing the VU1 program on the MTVU thread). The GIF Unit then acts
+like normal on the main emulation thread with its path arbitration and
+eventually uploads this fake GIF packet to the MTGS thread. The MTGS
+thread acts like normal telling the GS plugin to process real Path
+2/Path 3 GIF packets until it reaches the fake Path 1 packet. When it
+does this, the MTGS thread asks the MTVU thread if at least 1 VU1
+program has finished since the uploading of the fake GIF packet. If it
+hasnt, then the MTGS thread stalls until the MTVU thread can finish a
+VU1 program. If the MTVU thread has already finished a VU1 program, it
+signals the MTGS thread and then the MTGS thread wakes up and starts
+talking to pcsx2s GIF Unit. At this point the GIF Unit should have a
+Path 1 packet pending which the MTGS thread can process, because while
+the MTGS thread was waiting, the MTVU thread had been communicating with
+the GIF Unit and uploading real Path 1 packet data asynchronously to a
+buffer. When the MTVU thread finishes the VU1 program, just before it
+signals the MTGS thread that its done, it talks to the GIF Unit and
+tells it that all the Path 1 data that was just transferred to it should
+be considered a full Path 1 packet (and if no data was written to it,
+consider it a full Path 1 packet with size = 0). So going back to the
+MTGS thread, at this point it requests a full Path 1 packet from the GIF
+Unit, and the GIF Unit gives it one of the Path 1 packets that the MTVU
+thread has finished. Then the MTGS thread tells the GS plugin to process
+this Path 1 packet, and the cycle just continues over and over every
+time a VU1 program is run.</p><p>The only flaw in the above solution for GIF processing is that in
+reality pcsx2 needs to do some additional processing of GIF packet data
+on the main emulation thread to check if certain privileged GS registers
+are being written to (SIGNAL/FINISH/LABEL). With the approach described
+above, we first send fake GIF packet data that the GIF Unit processes
+instead of the real one; but if the game was really supposed to send a
+GIF packet which writes to the GSs SIGNAL/FINISH/LABEL registers, then
+we dont know about it and were out of luck. The game in this case will
+likely hang. There is no 100% reliable solution to this problem that
+still allows a fast threaded VU1, because in order to know for sure that
+those privileged registers will not be written, you need to execute the
+VU1 program and find out that it is not sending a GIF packet which
+writes to them. The best you can do is predict what the VU1 program will
+do based off what it did last time, but this is still not fully
+reliable, and a lot more complicated, it also will have a lot more
+overhead compared to the way were currently threading VU1, so in my
+opinion its not worth it. The good news is that its very rare for a game
+to write to the privileged registers from VU1s GIF Path 1 (they usually
+do it from Path 2/Path 3), so that means that MTVU should be very
+compatible, however due to this potential problem, MTVU has to remain a
+speedhack instead of adding it as a normal option.</p><p>The third big problem with VU1 emulation is the communication with VIF1.
+The VIF1 if you remember is in charge of sending new micro-programs to
+VU1 and decompressing data onto VU1 memory. In addition to this it has
+commands to tell VU1 to start executing, and it has commands to wait on
+VU1 to finish executing. All this VIF1 - VU communication screams
+problems for a threaded VU1 design. However we have a clever solution
+for this too. What we essentially do is duplicate VIF1, we have one
+instance on the main emulation thread, and we have another instance on
+the MTVU thread. Whenever VIF1 is told to do something on the main
+emulation thread, it runs like normal until it reaches a command which
+interacts with VU1. If the command is to wait on VU1, it just ignores
+it, because remember pcsx2 already has been used to VU1 running in its
+entirety, so VU1 is always complete when VIF1 has a command to wait on
+it; so theres no need to wait on VU1. If the command is to transfer data
+to VU1s memory, things get a tad more complex. What we do is write the
+command in the MTVU threads internal ring buffer. The MTVU thread is
+essentially just a ring buffer with queued commands which get processed
+in-order. The VIF1 writes a command in MTVUs ring buffer to say upload
+1024 bytes of data to VU1 micro-memory, and then the 1024 bytes of data
+is also written to the ring buffer. Next VIF1 can send a command that
+says execute VU1 with PC address = 0x1000, and this command gets written
+to MTVUs ring buffer as well. Finally MTVU decides its time to start
+executing commands in its ring buffer, and it sees the VIF1 command that
+writes 1024 bytes to VU1 micro-memory, and it executes this command on
+the MTVU thread. Then it sees the command to start VU1 executing at
+address 0x1000, and it starts executing the microVU1 recompiler with PC
+= 0x1000. This is the basics of how it works, the reason I said we have
+to duplicate VIF1 between the main emulation thread, and the MTVU
+thread, is that some VIF1 commands like VIF Unpack rely on status
+information from VIF1s registers. To get this working on the MTVU thread
+we need a separate state of VIF1 registers and status information,
+because the VIF1s status on the main emulation thread would be different
+by the time the commands are executed on the MTVU thread. Essentially
+from this description, you can see that the MTVU thread not only threads
+VU1, but also threads VIF1 command too. This is another speedup since
+VIF1 Unpacks are very computationally expensive (and thats why we even
+have a VIF Unpack recompiler).</p><p>The remaining problems of VU1 threading are handling the cases where the
+EE or other processors like VU0 ever need to read back from VU1. This
+happens very rarely, but in this situation all we need to do is call a
+Wait on VU1 Thread function immediately before trying to read from VU1
+memory. If it happened often it would ruin any chance of speedups
+threading VU1 had, but luckily it rarely happens. The EE actually works
+very closely with VU0 as opposed to VU1, and so threading VU0 would not
+be a speedup because the EE would end up reading back from it too much.
+The good thing is that VU0 is rarely a bottleneck in games; this is
+evident because you can usually run VU0 interpreters and get a minimal
+speed-hit (if you try to run vu1 interpreters on the other hand, your
+speed will usually crawl to <!-- -->~<!-- -->2fps).</p><p>By now you should hopefully have a better understanding of how pcsx2s
+VU1 and GS threading basically works, but you may still have questions
+on why its taken so long for us to do it. Well as shown above there were
+a lot of problems with threading VU1 which needed to be solved, and we
+werent sure about the best ways to handle them. Another huge reason is
+pcsx2 was not in a good state to make VU1 threading a reality until
+recently. We didnt have a centralized GIF Unit like the ps2 does;
+instead we had code that was all over the place and running the GIF
+paths without proper scheduling. The new GIF Unit rewrite solved this
+problem for us. Another problem was that Super VU1, the old VU1
+recompiler, was not thread safe (it combines stuff for VU0 and VU1
+emulation together), so a new thread safe recompiler was needed, which
+was one of the goals for the microVU recompiler I wrote. Another problem
+was the sloppiness of a lot of old pcsx2 code which had needless inter
+dependencies between various other code modules; we needed to isolate
+the related code with code refactoring and rewrites to clearly separate
+the code and make it thread safe. We also needed a thread-safe code
+emitter which allowed us to run multiple dynamic-recompilers in
+parallel; we solved this by a code emitter rewrite and using thread
+local storage for the emitters global data. Lastly we needed someone who
+knew about all these various components and was bored enough to try
+making something like this work</p></div><footer class="row docusaurus-mt-lg blogPostFooterDetailsFull_mRVl"><div class="col"><b>Tags:</b><ul class="tags_jXut padding--none margin-left--sm"><li class="tag_QGVx"><a class="tag_zVej tagRegular_sFm0" href="/blog/tags/devblog">devblog</a></li></ul></div><div class="col margin-top--sm"><a href="https://github.com/PCSX2/pcsx2-net-www/tree/master/blog/2011/threading-vu1/index.mdx" target="_blank" rel="noreferrer noopener" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Blog post page navigation"><a class="pagination-nav__link pagination-nav__link--prev" href="/blog/2011/path-masking-geometry-syncing"><div class="pagination-nav__sublabel">Newer Post</div><div class="pagination-nav__label">Path masking and geometry syncing</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/blog/2011/pcsx2-on-youtube-and-vimeo"><div class="pagination-nav__sublabel">Older Post</div><div class="pagination-nav__label">PCSX2 On Youtube And Vimeo</div></a></nav></main></div></div></div><footer class="footer"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Links</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/downloads">Downloads</a></li><li class="footer__item"><a class="footer__link-item" href="/compat">Compatibility</a></li><li class="footer__item"><a class="footer__link-item" href="/docs">Documentation</a></li><li class="footer__item"><a class="footer__link-item" href="/blog">Blog</a></li><li class="footer__item"><a href="https://forums.pcsx2.net/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Wiki<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://stats.uptimerobot.com/GAg8AuBByx" target="_blank" rel="noopener noreferrer" class="footer__link-item">Status<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div><div class="col footer__col"><div class="footer__title">Contribute</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/sponsors/PCSX2" target="_blank" rel="noopener noreferrer" class="footer__link-item">Donate<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://github.com/PCSX2/pcsx2" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div><div class="col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://discord.com/invite/TCz3t9k" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discord<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://forums.pcsx2.net/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Forums<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://twitter.com/PCSX2" target="_blank" rel="noopener noreferrer" class="footer__link-item">Twitter<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://www.youtube.com/user/PCSX2team" target="_blank" rel="noopener noreferrer" class="footer__link-item">YouTube<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div><div class="col footer__col"><div class="footer__title">Legal</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/privacy">Privacy</a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2022 PCSX2. All Rights Reserved.</div></div></div></footer></div></div>
+<script src="/assets/js/runtime~main.29d2e02b.js"></script>
+<script src="/assets/js/main.ce2c7a2d.js"></script>
+</body>
+</html>

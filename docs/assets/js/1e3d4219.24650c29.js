@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkpcsx_2_net=self.webpackChunkpcsx_2_net||[]).push([[7956],{39336:e=>{e.exports=JSON.parse('{"permalink":"/blog/tags/devblog/page/5","page":5,"postsPerPage":10,"totalPages":14,"totalCount":138,"previousPage":"/blog/tags/devblog/page/4","nextPage":"/blog/tags/devblog/page/6","blogDescription":"Blog","blogTitle":"Blog"}')}}]);

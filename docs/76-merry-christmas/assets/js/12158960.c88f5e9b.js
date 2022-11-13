@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkpcsx_2_net=self.webpackChunkpcsx_2_net||[]).push([[7771],{53652:e=>{e.exports=JSON.parse('{"title":"Usage","slug":"/category/usage","permalink":"/docs/category/usage","navigation":{"previous":{"title":"An Overview","permalink":"/docs/"},"next":{"title":"Nightly Build Setup","permalink":"/docs/usage/nightly-setup/"}}}')}}]);
