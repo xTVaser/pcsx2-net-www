@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@theme/Layout';
-import { Table, Grid, Tooltip, Badge, Link, Loading, Input, Container, Row, Col, Progress, Button, useAsyncList } from '@nextui-org/react';
+import { Table, Grid, Tooltip, Badge, Link, Loading, Input, Container, Row, Col, Button } from '@nextui-org/react';
 import { MdLibraryBooks, MdForum } from "react-icons/md";
 import Fuse from 'fuse.js'
 import { DateTime } from "luxon";
-import styles from './index.module.css';
 import { GoogleAd } from '../../components/GoogleAd';
 import { useMediaQuery } from "../../utils/mediaQuery";
 
@@ -120,8 +119,8 @@ const columns = [
   }
 ];
 
-const renderCell = (user, columnKey) => {
-  const cellValue = user[columnKey];
+const renderCell = (entry, columnKey) => {
+  const cellValue = entry[columnKey];
   switch (columnKey) {
     case "status":
       switch (cellValue.toLowerCase()) {
@@ -173,7 +172,7 @@ const renderCell = (user, columnKey) => {
         return (null);
       }
     case "serial":
-      return <span className="monospaced">{getEmojiFlag(user["region"])}&nbsp;{cellValue}</span>
+      return <span className="monospaced">{getEmojiFlag(entry["region"])}&nbsp;{cellValue}</span>
     case "crc":
       return <span className="monospaced">{cellValue}</span>
     default:
@@ -191,7 +190,7 @@ const searchOptions = {
   ]
 };
 
-import useBaseUrl from '@docusaurus/useBaseUrl';
+import CompatData from '@site/static/data/compat/data.min.json';
 
 export default function Compatiblity() {
   // State
@@ -216,21 +215,21 @@ export default function Compatiblity() {
   const [loadingState, setLoadingState] = useState("loading");
   const [page, setPage] = useState(1);
   const [searchString, setSearchString] = useState("");
+  const [readyToFilter, setReadyToFilter] = useState(false);
 
-  useEffect(async () => {
-    const resp = await fetch(
-      useBaseUrl(`/data/compat/data.min.json`)
-    );
-    // TODO - handle error cases
-    const data = await resp.json();
-    setTableData(getTableData(data));
+  useEffect(() => {
+    setTableData(getTableData(CompatData));
     // Determine distribution of statuses
-    setFilterStats(calcPercentages(data));
-    setFilteredData(getTableData(data));
+    setFilterStats(calcPercentages(CompatData));
+    setFilteredData(getTableData(CompatData));
     setLoadingState("idle");
+    setReadyToFilter(true);
   }, []);
 
-  const filterData = async () => {
+  const filterData = () => {
+    if (!readyToFilter) {
+      return;
+    }
     // Start with the raw data, filter it by status first
     let newFilteredData = tableData.filter(entry => {
       return !filterOptions[entry.status.toLowerCase()];
