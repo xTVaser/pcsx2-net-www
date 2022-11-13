@@ -191,6 +191,8 @@ const searchOptions = {
   ]
 };
 
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 export default function Compatiblity() {
   // State
   const [tableData, setTableData] = useState([]);
@@ -217,7 +219,7 @@ export default function Compatiblity() {
 
   useEffect(async () => {
     const resp = await fetch(
-      `/data/compat/data.min.json`
+      useBaseUrl(`/data/compat/data.min.json`)
     );
     // TODO - handle error cases
     const data = await resp.json();
