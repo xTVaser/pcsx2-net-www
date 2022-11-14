@@ -69,7 +69,7 @@ const config = {
         disableSwitch: false,
         respectPrefersColorScheme: true,
       },
-      image: 'img/logo.png',
+      image: 'img/logo.webp',
       navbar: {
         title: 'PCSX2',
         logo: {
