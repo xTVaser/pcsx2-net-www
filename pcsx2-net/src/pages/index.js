@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
-import { Text, Button, Row, Col, Card, Grid } from "@nextui-org/react";
+import { Text, Button, Row, Col, Card, Grid, getDocumentTheme } from "@nextui-org/react";
 import { NumberTicker } from "../components/NumberTicker";
 import { Animation } from '../components/SphereAnimation';
 import { getLatestRelease } from '../components/ReleaseDownloadButton';
@@ -68,6 +68,7 @@ export default function Home() {
   const [latestStableRelease, setLatestStableRelease] = useState({});
   const [latestNightlyRelease, setLatestNightlyRelease] = useState({});
   const [apiErrorMsg, setApiErrorMsg] = useState(undefined);
+  const [homePosterUrl, setHomePosterUrl] = useState("/img/home-poster.png")
 
   useEffect(async () => {
     try {
@@ -94,6 +95,18 @@ export default function Home() {
     } catch (err) {
       setApiErrorMsg("Unexpected API Error Occurred. Try Again Later!");
     }
+
+    setHomePosterUrl(getDocumentTheme(document?.documentElement) === "dark" ? "/img/home-poster.png" : "/img/home-poster-light.png");
+
+    const observer = new MutationObserver((mutation) => {
+      setHomePosterUrl(getDocumentTheme(document?.documentElement) === "dark" ? "/img/home-poster.png" : "/img/home-poster-light.png");
+    });
+
+    // Observe the document theme changes
+    observer.observe(document?.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'style', "class"]
+    });
   }, []);
 
   return (
@@ -101,18 +114,15 @@ export default function Home() {
       title={`Home`}
       description="An Open-Source Playstation 2 Emulator">
       <main>
-        <BrowserOnly>
-          {() => (
-            useMediaQuery(960) ?
-              <img src={useBaseUrl("/img/home-poster.png")} style={{
+        {useMediaQuery(960) ? <img src={useBaseUrl(homePosterUrl)} style={{
                 position: "absolute",
                 minHeight: "calc(84vh - 76px)",
                 width: "100%",
                 objectFit: "cover"
-              }} />
-              : <Animation />
-          )}
-        </BrowserOnly>
+              }} /> : <BrowserOnly>
+              {() => (<Animation />
+              )}
+            </BrowserOnly>}
         <Grid.Container alignItems='center' gap={2} css={{
           position: "relative",
           minHeight: "calc(84vh - 76px)",
