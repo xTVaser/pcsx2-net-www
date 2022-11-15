@@ -2776,51 +2776,6 @@ collections of games!</p>]]></content>
         <category label="progress-report" term="progress-report"/>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Explanation Impossible Blend]]></title>
-        <id>/2015/explanation-impossible-blend</id>
-        <link href="https://pcsx2.net/pcsx2-net-www/blog/2015/explanation-impossible-blend"/>
-        <updated>2015-06-08T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[The goal of blending is to combine two colors]]></summary>
-        <content type="html"><![CDATA[<p>The goal of blending is to combine two colors. The general equation on a
-modern GPU is:</p><div class="language-cpp codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#f8f8f2;--prism-background-color:#272822"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-cpp codeBlock_bY9V thin-scrollbar"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#f8f8f2"><span class="token plain">coefficient1 </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain"> color1 </span><span class="token operator" style="color:#66d9ef">+</span><span class="token operator" style="color:#66d9ef">/</span><span class="token operator" style="color:#66d9ef">-</span><span class="token plain"> coefficient2 </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain"> color2</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg class="copyButtonIcon_y97N" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg class="copyButtonSuccessIcon_LjdS" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div><p>Color1/Color 2 are either the source color or the destination color.
-Coefficient1/Coefficient2 are either the alpha value (transparency) of
-source/source2/destination, 1 - alpha, or a constant. The GPU will clamp
-the coefficients to <!-- -->[<!-- -->0;1<!-- -->]</p><p>The general equation on the PS2 however is:</p><div class="language-cpp codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#f8f8f2;--prism-background-color:#272822"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-cpp codeBlock_bY9V thin-scrollbar"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#f8f8f2"><span class="token punctuation" style="color:#f8f8f2">(</span><span class="token plain">Color1 </span><span class="token operator" style="color:#66d9ef">-</span><span class="token plain"> Color2</span><span class="token punctuation" style="color:#f8f8f2">)</span><span class="token plain"> </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain"> Coefficient </span><span class="token operator" style="color:#66d9ef">+</span><span class="token plain"> Color3</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg class="copyButtonIcon_y97N" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg class="copyButtonSuccessIcon_LjdS" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div><p>Color1/Color2/Color3 are either the source or destination color or zero.</p><p>Coefficient is the alpha value (transparency) of the source or
-destination, or a constant.</p><p>The issues we have with this are as follows:</p><ol><li>In the PS2, the coefficient factor could range from <!-- -->[<!-- -->0;2<!-- -->]<!-- -->
-(fortunately this almost never happens)</li><li>If Color3 and Color1 are the same source, the equation will be:</li></ol><div class="language-cpp codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#f8f8f2;--prism-background-color:#272822"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-cpp codeBlock_bY9V thin-scrollbar"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#f8f8f2"><span class="token plain">Color1 </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain"> </span><span class="token punctuation" style="color:#f8f8f2">(</span><span class="token number" style="color:#ae81ff">1</span><span class="token operator" style="color:#66d9ef">+</span><span class="token plain">Coefficient</span><span class="token punctuation" style="color:#f8f8f2">)</span><span class="token plain"> </span><span class="token operator" style="color:#66d9ef">-</span><span class="token plain"> Color2 </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain">Coefficient</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg class="copyButtonIcon_y97N" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg class="copyButtonSuccessIcon_LjdS" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div><p>which will result in the first half of this equation always being larger
-than 1. This is a problem because the GPU is limited to 1. This is why
-this type of blending is impossible on the fixed function unit of a PC's
-GPU.</p><p>Our recent update fixed the second case. Since it is impossible to do
-that blending on the fixed function unit, we instead emulate them in the
-GPU's fragment shader. Fragment shaders are very small dedicated CPUs so
-it is quite easy to do a few small operations on them.</p><p>There is a catch however. Fragment shaders (like any CPU) are relatively
-slow. In order to compensate for this the fragments are executed
-out-of-order. For example, if you do a draw call consisting of 2
-triangles, it is possible that the second triangle will be computed
-before the first one. It is quite annoying because blending is an
-in-order operation. However as long as primitives don't self overlap,
-only a single fragment shader must execute and therefore there is no
-issue with order.</p><p>Great. At this point we just need to split the draw calls into N draw
-calls without primitive overlap. It's not free performance wise to do
-this, but it remains reasonable in some cases.</p><p>Moving on, we need to access the destination value to compute the final
-value, however the GPU has a texture cache. The texture cache is read
-only so that there is no coherency issue. The target value can be
-written but all the subsequent reads will be wrong because of the
-discrepancy with the cache. Getting back to the input texture case, the
-texture is read only during the draw but this could change on the
-following draw. There must be a way to invalidate the cache if you
-upload a new texture to the same location. The driver has this ability,
-but until recently applications did not. GL 4.5 changes this. A function
-is provided to invalidate the cache</p><p>The end result is that we can implement basic blending in the fragment
-shader instead of relying on the limited GPU core.</p><p>Proofread and corrected by <a href="http://forums.pcsx2.net/User-Blyss-Sarania" target="_blank" rel="noopener noreferrer">Blyss
-Sarania</a></p>]]></content>
-        <author>
-            <name>Gregory</name>
-            <uri>https://github.com/gregory38</uri>
-        </author>
-        <category label="devblog" term="devblog"/>
-    </entry>
-    <entry>
         <title type="html"><![CDATA[Explanation Hacks Needed For Upscaling Glitches]]></title>
         <id>/2015/explanation-hacks-needed-for-upscaling-glitches</id>
         <link href="https://pcsx2.net/pcsx2-net-www/blog/2015/explanation-hacks-needed-for-upscaling-glitches"/>
@@ -2887,6 +2842,51 @@ holes and errors in the image are below the sampling rate of the PS2's
 traditional output and therefore you never see them. Once you enable
 some form of anti aliasing (linear filtering/upscaling/MSAA/<!-- -->*<!-- -->*<!-- -->AA),
 they become visible as the sample rate is high enough to expose them.</p><p>Proofread and corrected by <a href="http://forums.pcsx2.net/User-Blyss-Sarania" target="_blank" rel="noopener noreferrer">Blyss
+Sarania</a></p>]]></content>
+        <author>
+            <name>Gregory</name>
+            <uri>https://github.com/gregory38</uri>
+        </author>
+        <category label="devblog" term="devblog"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Explanation Impossible Blend]]></title>
+        <id>/2015/explanation-impossible-blend</id>
+        <link href="https://pcsx2.net/pcsx2-net-www/blog/2015/explanation-impossible-blend"/>
+        <updated>2015-06-08T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[The goal of blending is to combine two colors]]></summary>
+        <content type="html"><![CDATA[<p>The goal of blending is to combine two colors. The general equation on a
+modern GPU is:</p><div class="language-cpp codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#f8f8f2;--prism-background-color:#272822"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-cpp codeBlock_bY9V thin-scrollbar"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#f8f8f2"><span class="token plain">coefficient1 </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain"> color1 </span><span class="token operator" style="color:#66d9ef">+</span><span class="token operator" style="color:#66d9ef">/</span><span class="token operator" style="color:#66d9ef">-</span><span class="token plain"> coefficient2 </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain"> color2</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg class="copyButtonIcon_y97N" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg class="copyButtonSuccessIcon_LjdS" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div><p>Color1/Color 2 are either the source color or the destination color.
+Coefficient1/Coefficient2 are either the alpha value (transparency) of
+source/source2/destination, 1 - alpha, or a constant. The GPU will clamp
+the coefficients to <!-- -->[<!-- -->0;1<!-- -->]</p><p>The general equation on the PS2 however is:</p><div class="language-cpp codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#f8f8f2;--prism-background-color:#272822"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-cpp codeBlock_bY9V thin-scrollbar"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#f8f8f2"><span class="token punctuation" style="color:#f8f8f2">(</span><span class="token plain">Color1 </span><span class="token operator" style="color:#66d9ef">-</span><span class="token plain"> Color2</span><span class="token punctuation" style="color:#f8f8f2">)</span><span class="token plain"> </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain"> Coefficient </span><span class="token operator" style="color:#66d9ef">+</span><span class="token plain"> Color3</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg class="copyButtonIcon_y97N" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg class="copyButtonSuccessIcon_LjdS" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div><p>Color1/Color2/Color3 are either the source or destination color or zero.</p><p>Coefficient is the alpha value (transparency) of the source or
+destination, or a constant.</p><p>The issues we have with this are as follows:</p><ol><li>In the PS2, the coefficient factor could range from <!-- -->[<!-- -->0;2<!-- -->]<!-- -->
+(fortunately this almost never happens)</li><li>If Color3 and Color1 are the same source, the equation will be:</li></ol><div class="language-cpp codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#f8f8f2;--prism-background-color:#272822"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-cpp codeBlock_bY9V thin-scrollbar"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#f8f8f2"><span class="token plain">Color1 </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain"> </span><span class="token punctuation" style="color:#f8f8f2">(</span><span class="token number" style="color:#ae81ff">1</span><span class="token operator" style="color:#66d9ef">+</span><span class="token plain">Coefficient</span><span class="token punctuation" style="color:#f8f8f2">)</span><span class="token plain"> </span><span class="token operator" style="color:#66d9ef">-</span><span class="token plain"> Color2 </span><span class="token operator" style="color:#66d9ef">*</span><span class="token plain">Coefficient</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg class="copyButtonIcon_y97N" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg class="copyButtonSuccessIcon_LjdS" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div><p>which will result in the first half of this equation always being larger
+than 1. This is a problem because the GPU is limited to 1. This is why
+this type of blending is impossible on the fixed function unit of a PC's
+GPU.</p><p>Our recent update fixed the second case. Since it is impossible to do
+that blending on the fixed function unit, we instead emulate them in the
+GPU's fragment shader. Fragment shaders are very small dedicated CPUs so
+it is quite easy to do a few small operations on them.</p><p>There is a catch however. Fragment shaders (like any CPU) are relatively
+slow. In order to compensate for this the fragments are executed
+out-of-order. For example, if you do a draw call consisting of 2
+triangles, it is possible that the second triangle will be computed
+before the first one. It is quite annoying because blending is an
+in-order operation. However as long as primitives don't self overlap,
+only a single fragment shader must execute and therefore there is no
+issue with order.</p><p>Great. At this point we just need to split the draw calls into N draw
+calls without primitive overlap. It's not free performance wise to do
+this, but it remains reasonable in some cases.</p><p>Moving on, we need to access the destination value to compute the final
+value, however the GPU has a texture cache. The texture cache is read
+only so that there is no coherency issue. The target value can be
+written but all the subsequent reads will be wrong because of the
+discrepancy with the cache. Getting back to the input texture case, the
+texture is read only during the draw but this could change on the
+following draw. There must be a way to invalidate the cache if you
+upload a new texture to the same location. The driver has this ability,
+but until recently applications did not. GL 4.5 changes this. A function
+is provided to invalidate the cache</p><p>The end result is that we can implement basic blending in the fragment
+shader instead of relying on the limited GPU core.</p><p>Proofread and corrected by <a href="http://forums.pcsx2.net/User-Blyss-Sarania" target="_blank" rel="noopener noreferrer">Blyss
 Sarania</a></p>]]></content>
         <author>
             <name>Gregory</name>

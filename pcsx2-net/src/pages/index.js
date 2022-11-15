@@ -10,6 +10,7 @@ import { ReleaseDownloadButton } from '../components/ReleaseDownloadButton';
 import { GoogleAd } from '../components/GoogleAd';
 import { useMediaQuery } from "../utils/mediaQuery";
 import { styled } from "@nextui-org/react";
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const StyledTitle = styled("h1", {
   display: "inline",
@@ -41,14 +42,12 @@ const StyledSubtitle = styled("p", {
   color: "$accents7",
 });
 
-async function getPlayableGameCount() {
+import CompatData from '@site/static/data/compat/data.min.json';
+
+function getPlayableGameCount() {
   try {
-    const resp = await fetch(
-      `/data/compat/data.min.json`
-    );
-    const data = await resp.json();
     let count = 0;
-    for (const entry of data) {
+    for (const entry of CompatData) {
       if (entry.status.toLowerCase() === "perfect" || entry.status.toLowerCase() === "playable") {
         count++;
       }
@@ -59,6 +58,7 @@ async function getPlayableGameCount() {
     return 2667;
   }
 }
+
 
 import { latestProgressReport, latestBlog } from '../data/latestBlogs';
 
@@ -103,7 +103,14 @@ export default function Home() {
       <main>
         <BrowserOnly>
           {() => (
-            <Animation/>
+            useMediaQuery(960) ?
+              <img src={useBaseUrl("/img/home-poster.png")} style={{
+                position: "absolute",
+                minHeight: "calc(84vh - 76px)",
+                width: "100%",
+                objectFit: "cover"
+              }} />
+              : <Animation />
           )}
         </BrowserOnly>
         <Grid.Container alignItems='center' gap={2} css={{
@@ -149,7 +156,7 @@ export default function Home() {
                 />
               </Grid>
               <Grid>
-                <a href="/downloads" style={{ textDecoration: "none" }}>
+                <a href={useBaseUrl("/downloads")} style={{ textDecoration: "none" }}>
                   <Button light color="secondary" css={{ minWidth: "200px" }}>
                     Previous Versions
                   </Button>
@@ -160,7 +167,7 @@ export default function Home() {
           <Grid xs={12} md={6} direction={"column"}>
             <Grid.Container gap={2}>
               <Grid md={6}>
-                <a href={latestProgressReport.url}>
+                <a href={useBaseUrl(latestProgressReport.url)}>
                   <Card>
                     <Card.Header css={{ position: "absolute", zIndex: 1, top: 5 }}>
                       <Col>
@@ -185,7 +192,7 @@ export default function Home() {
             <Grid.Container gap={2}>
               <Grid xs={0} md={6}></Grid>
               <Grid md={6}>
-                <a href={latestBlog.url}>
+                <a href={useBaseUrl(latestBlog.url)}>
                   <Card>
                     <Card.Header css={{ position: "absolute", zIndex: 1, top: 5 }}>
                       <Col>
@@ -216,7 +223,8 @@ export default function Home() {
             },
             "@mdMax": {
               width: "100%"
-            }}}>
+            }
+          }}>
             <GoogleAd></GoogleAd>
           </Col>
         </Row>
@@ -251,7 +259,7 @@ export default function Home() {
           </Grid.Container>
           <Grid.Container gap={2}><Grid xs={12}>
             <p>
-            PCSX2 allows you to play PS2 games on your PC, with many additional features and benefits. A few of those benefits include:
+              PCSX2 allows you to play PS2 games on your PC, with many additional features and benefits. A few of those benefits include:
               <ul>
                 <li>custom resolutions and upscaling</li>
                 <li>virtual and sharable memory cards</li>
@@ -270,7 +278,8 @@ export default function Home() {
             },
             "@mdMax": {
               width: "100%"
-            }}}>
+            }
+          }}>
             <GoogleAd></GoogleAd>
           </Col>
         </Row>
