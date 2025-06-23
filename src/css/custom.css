@@ -27,6 +27,7 @@
   --card-color-background: #000;
   --home-video-background-color: #fff;
   --ifm-footer-link-color: #000;
+  --ifm-pre-line-height: 1.3;
 }
 
 [data-theme="dark"] {
