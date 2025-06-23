@@ -317,6 +317,12 @@ aside > div > nav.menu {
   font-family: "Roboto Mono", "monospaced";
 }
 
+.pre {
+  font-family: "Roboto Mono", "monospaced";
+  white-space: pre;
+  line-height: 1.3em;
+}
+
 table thead {
   background-color: unset;
 }

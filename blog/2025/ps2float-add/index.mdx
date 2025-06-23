@@ -1,0 +1,345 @@
+---
+draft: false
+title: "PS2 Floating Point: Add"
+tags:
+ - devblog
+ - ps2float
+date: 2025-06-22
+description: Introduction to PS2 floating point
+hide_table_of_contents: false
+authors:
+ - tellowkrinkle
+---
+
+PCSX2 recently got support for "Soft Floats" in its interpreter (recompiler implementation coming soon™), but what exactly are floats, how do the PS2's floats differ from those on normal PCs, and why is emulating them so slow?
+
+<!-- truncate -->
+
+## Floating Point Numbers
+
+Floating point numbers are a method for computers to represent numbers similar to scientific notation.  Just like scientific numbers are of the format #.#####×10<sup>#</sup>, the binary floating point numbers used by computers take the form #.#####×2<sup>#</sup>.
+
+Due to the sacrifices they make to squish all numbers into a value easily processable by a computer, these floating point numbers don't uphold all the properties you might expect out of the numbers used in math.  Here's some examples:
+<table style={{ textAlign: "center" }}>
+	<tr>
+		<th>Property</th>
+		<th>Reals (Math)</th>
+		<th>IEEE 754 (PC)</th>
+		<th>PS2 Float</th>
+	</tr>
+	<tr>
+		<td>(x + y) + z = x + (y + z)</td>
+		<td>⭕️</td>
+		<td>❌</td>
+		<td>❌</td>
+	</tr>
+	<tr>
+		<td>x - y = x + -y</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+	</tr>
+	<tr>
+		<td>x + y = y + x</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+	</tr>
+	<tr>
+		<td>x * y = y * x</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+		<td>❌</td>
+	</tr>
+	<tr>
+		<td>x + 0 = x</td>
+		<td>⭕️</td>
+		<td>❌</td>
+		<td>❌</td>
+	</tr>
+	<tr>
+		<td>x - 0 = x</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+	</tr>
+	<tr>
+		<td>x * 1 = x</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+	</tr>
+	<tr>
+		<td>1 * x = x</td>
+		<td>⭕️</td>
+		<td>⭕️</td>
+		<td>❌</td>
+	</tr>
+	<tr>
+		<td>0 * x = 0</td>
+		<td>⭕️</td>
+		<td>❌</td>
+		<td>⭕️</td>
+	</tr>
+	<tr>
+		<td>x - x = 0</td>
+		<td>⭕️</td>
+		<td>❌</td>
+		<td>⭕️</td>
+	</tr>
+</table>
+
+<details>
+	<summary>Why don't they?</summary>
+
+	Note: I'm using = to mean "has bit-identical representation", rather than the definition of equality used by the respective floating point standards.  PC floating point equality does funny things with NaNs and the chart is big enough already.  I'm also ignoring denormal inputs, since you can't get a denormal input from doing other math on the PS2.
+
+	- (x + y) + z = x + (y + z): This is usually caused by rounding error.  After each operation, the results are rounded so they can fit in the allotted number of digits/bits, and the rounding can go differently depending on what order you do the math in.
+	- x * y = y * x: The PS2 has a very special multiplier that will be covered in a future blog post.
+	- 1 * x = x: See above.
+	- x + 0 = x: Both PS2 and PC floating point have both a negative and positive zero, and adding 0 to either of them results in positive 0.
+	- 0 * x = 0: PC floating point has infinities and NaNs, which do not uphold this property.
+	- x - x = 0: Same as above.
+</details>
+
+## Terms and Conventions
+
+Wherever possible, this article will use decimal scientific notation for its examples, even though both PCs and PS2s operate exclusively on binary floating point, since most humans are more familiar with math in decimal.  Know that in these cases, the operation is pretty much the same in binary, as anywhere the details of the binary format are important, the article will use binary.
+
+Some of these terms have multiple meanings outside of this article, but will be used for the following meanings within this article.
+In particular, "mantissa" is often used to refer to the significand in ps2float code, but this article will use "significand".
+
+#### Parts of a floating-point number
+<div class="pre">
+±2.7432×10<sup>20</sup>
+││ ╰──┤   ╰┴╴Exponent
+││    ├─────╴Mantissa
+│╰────┴─────╴Significand
+╰───────────╴Sign
+</div>
+(The mantissa is the part after the decimal point, while the significand includes both the number before and the numbers after.)
+#### Precision
+Precision refers to how small of a difference a number can represent.  This article will use "digits of precision" when talking about decimal numbers, and "bits of precision" when talking about binary numbers.
+
+This article will pad numbers with zeros to indicate precision.  For example, both 4.3200×10<sup>40</sup> and 4.3201×10<sup>40</sup> have 5 digits of precision, while 4.32×10<sup>40</sup> has 3 digits of precision.
+
+#### ULPs
+A ULP (**u**nit in the **l**ast **p**lace) is the smallest value a floating point number can change by.
+
+The ULP of 4.32×10<sup>40</sup> is 0.01×10<sup>40</sup>, while the ULP of 4.3200×10<sup>40</sup> is 0.0001×10<sup>40</sup>.
+
+#### PC Floats
+Since this article will mostly be comparing to PS2 floats to the closest floating point format used by modern computers, "PC float" will be used as a shorthand for IEEE 754 binary32 (single precision) floating point numbers.
+
+#### Number Representations
+This article may use any of the following representations when talking about numbers:
+- 6: A decimal integer
+- 0x40C00000: A 32-bit binary floating point number (PC or PS2), written as 8 hexadecimal digits.  Since these are harder for humans to understand, they will be avoided wherever possible.
+- 1.1000×2<sup>2</sup>: A binary floating point number
+- 6.0000×10<sup>0</sup>: A decimal floating point number (scientific notation)
+
+Note that the exponent of floating point numbers will always be written in decimal, regardless of whether the significand is binary or not.
+
+Ranges written like 1-254 are inclusive on both ends (so 1-254 includes both 1 and 254).
+
+## PC Floating Point
+
+The floating point formats used by modern computers is defined in the IEEE 754 standard.  This article will focus on the 32-bit variant, since which is most similar to the PS2's floating point.  More details are available [on wikipedia](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) and you can use [float.exposed](https://float.exposed) to play around with it, but I'll put a short summary here.
+
+PC floats split a 32-bit value into three sections, a 1-bit sign (plus or minus), an 8-bit exponent, and a 23-bit mantissa.  The exponent is biased, so the value contained is the real exponent minus 127.
+
+If the exponent field is in the range 1 - 254 (-126 - 127 unbiased) represent the floating point number ±1.mantissa×2<sup>exponent</sup> (note the implicit 1 bit in the significand).
+
+If the exponent field is 0, this represents the floating point number ±0.mantissa×2<sup>-126</sup> (note: since the implicit 1 bit is lost, the exponent is the same as a float with a 1 in the exponent field).  These numbers are often called denormal numbers.
+
+If the exponent field is 255, this represents special numbers.  A number with an exponent of 255 and a mantissa of 0 is ±infinity, while a nonzero mantissa indicates NaN (Not a Number).  Many math functions handle these values specially, for example infinity - non-inf = infinity, infinity - infinity = NaN, and almost every operation that involves a NaN returns another NaN as the result.
+
+## PS2 Floating Point
+
+PS2 floating point is just like PC floating point, except there's no special handling for exponents of 255.  This means that an exponent of 255 represents the number ±1.mantissa×2<sup>128</sup>, which is not representable by PC floating point (since those numbers are used by infinities and NaNs).
+
+In addition, the PS2 treats all denormal numbers as 0.  Thankfully, PC CPUs have a mode you can enable that makes them also treat denormal numbers as 0, so PCSX2 enables that mode and doesn't worry about denormals.
+
+## Emulating PS2 Floating Point on PC
+
+Since PS2 floats are the same as PC floats when the exponent isn't 255, most values will look correct, so what if you just pretended the PS2 floats were PC floats?  PCSX2 will do this if you set the clamping mode to None.
+
+If a game breaks when you pretend PS2 floats are PC floats, does it care about the actual value of its massive floats, or is it just having trouble with the fact that PC floats in the inf/NaN range do really weird things like staying around even when multiplied by 0?  PCSX2's default mode (clamping mode Normal) replaces all inf/NaN values with the maximum non-infinite float value after each operation, and clamping mode Extra does it before each operation as well.
+
+But what if some games actually do care about the value of their massive floats?  PCSX2's final clamping mode, Full (available only in FPU emulation), converts PS2 floats to 64-bit IEEE 754 floats, which, among other things, support a much larger range of exponents, guaranteeing that large exponents will be handled like a PS2.
+
+If that doesn't fix a game, then its floating point issues lie not in massive numbers but tiny numbers, or more specifically tiny differences in the results of otherwise accurate calculations.  The details of these are different for each operation, so we'll have to cover them all separately.  Let's start with the simplest operation, addition and subtraction.
+
+## How to Add Floating Point Numbers
+
+Before we look at how PCs or PS2s add floating point numbers, let's first look at how a human might add numbers in scientific notation:
+
+<div class="pre">
+&nbsp; 4.25×10<sup>4</sup>
+\+ 1.88×10<sup>2</sup>
+</div>
+
+First, you need to match the exponents between the two numbers...
+
+<div class="pre">
+&nbsp; 4.2500×10<sup>4</sup>
+\+ 0.0188×10<sup>4</sup>
+</div>
+
+Then you add them...
+
+<div class="pre">
+&nbsp; 4.2500×10<sup>4</sup>
+\+ 0.0188×10<sup>4</sup>
+\= 4.2688×10<sup>4</sup>
+</div>
+
+And finally round the result to the starting precision, which was 3 digits in our case.  PCs use round nearest-even by default, which rounds to the nearest representable number, with ties going towards the even number (so if you were rounding to the nearest integer, 2.5000 would round to 2, but 3.5000 to 4).
+
+<div class="pre">
+&nbsp; 4.2500×10<sup>4</sup>
+\+ 0.0188×10<sup>4</sup>
+\= 4.2688×10<sup>4</sup>
+≈ 4.27×10<sup>4</sup>
+</div>
+
+PC CPUs also support three other rounding modes, which PCSX2 lets you select.  PCSX2's default, which is closest to what the PS2 does, is round towards zero:
+
+<div class="pre">
+&nbsp; 4.2500×10<sup>4</sup>
+\+ 0.0188×10<sup>4</sup>
+\= 4.2688×10<sup>4</sup>
+≈ 4.26×10<sup>4</sup>
+</div>
+
+But you can also select round positive (which rounds positive numbers away from zero and negative numbers towards zero), or round negative (which does the opposite).
+
+### Guard Bits
+
+Okay, let's try another one.
+
+<div class="pre">
+&nbsp; 4.25×10<sup>4</sup>
+\+ 1.88×10<sup>-4</sup>
+</div>
+
+Follow the steps above...
+
+<div class="pre">
+&nbsp; 4.2500000000×10<sup>4</sup>
+\+ 0.0000000188×10<sup>4</sup>
+\= 4.2500000188×10<sup>4</sup>
+≈ 4.25×10<sup>4</sup>
+</div>
+
+Wow, that's a lot of digits we need to handle.  Computers (and humans) don't really like it when an addition with 3 digits of precision explodes to 11 or more digits in their intermediary calculations.  Maybe we can throw some of them away before doing the addition without affecting the result...
+
+<div class="pre" style={{ lineHeight: 1.05 }}>
+&nbsp; Full Precision <sup> </sup> │ Reduced Precision
+&nbsp; 4.2500000000×10<sup>4</sup> │   4.25×10<sup>4</sup>
+\+ 0.0000000188×10<sup>4</sup> │ \+ 0.00×10<sup>4</sup>
+\= 4.2500000188×10<sup>4</sup> │ = 4.25×10<sup>4</sup>
+≈ 4.25×10<sup>4</sup>         │ ≈ 4.25×10<sup>4</sup>
+</div>
+
+Looking good, let's try that with the first problem...
+
+<div class="pre" style={{ lineHeight: 1.05 }}>
+Full Precision<sup> </sup>│ Reduced Precision
+&nbsp; 4.2500×10<sup>4</sup>   │   4.25×10<sup>4</sup>
+\+ 0.0188×10<sup>4</sup>   │ \+ 0.01×10<sup>4</sup>
+\= 4.2688×10<sup>4</sup>   │ = 4.26×10<sup>4</sup>
+≈ 4.27×10<sup>4</sup>     │ ≈ 4.26×10<sup>4</sup>
+</div>
+
+Oops, we deleted the digit that was getting used for rounding, let's add one more digit to our reduced precision.
+
+<div class="pre" style={{ lineHeight: 1.05 }}>
+Full Precision<sup> </sup>│ Reduced Precision
+&nbsp; 4.2500×10<sup>4</sup>   │   4.250×10<sup>4</sup>
+\+ 0.0188×10<sup>4</sup>   │ \+ 0.018×10<sup>4</sup>
+\= 4.2688×10<sup>4</sup>   │ = 4.268×10<sup>4</sup>
+≈ 4.27×10<sup>4</sup>     │ ≈ 4.27×10<sup>4</sup>
+</div>
+
+Okay, let's try another problem
+
+<div class="pre">
+&nbsp; 4.257×10<sup>4</sup>
+\+ 5.001×10<sup>0</sup>
+</div>
+
+<div class="pre" style={{ lineHeight: 1.05 }}>
+&nbsp;Full Precision<sup> </sup>│ Reduced Precision
+&nbsp; 4.2560000×10<sup>4</sup> │   4.2560×10<sup>4</sup>
+\+ 0.0005001×10<sup>4</sup> │ \+ 0.0005×10<sup>4</sup>
+\= 4.2565001×10<sup>4</sup> │ \= 4.2565×10<sup>4</sup>
+≈ 4.257×10<sup>4</sup>     │ ≈ 4.256×10<sup>4</sup>
+</div>
+
+Now, when we see a 5 that we need to round, we don't know if it's a perfect tie or not.  In this case, the tie-breaking digit is the lowest one in the full precision calculation, so extending that far would make our reduced precision calculation no longer reduced precision.  What if we added a marker to the end of the reduced precision calculation to indicate whether any of the digits past there are nonzero?  I'll represent that marker with a •.
+
+<div class="pre" style={{ lineHeight: 1.05 }}>
+&nbsp;Full Precision<sup> </sup>│ Reduced Precision
+&nbsp; 4.2560000×10<sup>4</sup> │   4.25600×10<sup>4</sup>
+\+ 0.0005001×10<sup>4</sup> │ \+ 0.0005•×10<sup>4</sup>
+\= 4.2565001×10<sup>4</sup> │ \= 4.2565•×10<sup>4</sup>
+≈ 4.257×10<sup>4</sup>     │ ≈ 4.257×10<sup>4</sup>
+</div>
+
+<div class="pre" style={{ lineHeight: 1.05 }}>
+&nbsp;Full Precision<sup> </sup>│ Reduced Precision
+&nbsp; 4.2560000×10<sup>4</sup> │   4.25600×10<sup>4</sup>
+\+ 0.0005000×10<sup>4</sup> │ \+ 0.00050×10<sup>4</sup>
+\= 4.2565000×10<sup>4</sup> │ \= 4.25650×10<sup>4</sup>
+≈ 4.256×10<sup>4</sup>     │ ≈ 4.256×10<sup>4</sup>
+</div>
+
+And that's all we'd need if we only ever needed to add.  But if we add two numbers of opposite sign, that results in a subtraction, which causes a new problem:
+
+<div class="pre">
+&nbsp; 1.000×10<sup>4</sup>
+\- 5.001×10<sup>0</sup>
+</div>
+
+<div class="pre" style={{ lineHeight: 1.05 }}>
+&nbsp;Full Precision<sup> </sup>│ Reduced Precision
+&nbsp; 1.0000000×10<sup>4</sup> │   1.00000×10<sup>4</sup>
+\- 0.0005001×10<sup>4</sup> │ \- 0.0005•×10<sup>4</sup>
+\= 0.9994999×10<sup>4</sup> │ \= 0.9994•×10<sup>4</sup>
+≈ 9.995×10<sup>3</sup>     │ ≈ 9.994×10<sup>3</sup>
+</div>
+
+We always want to end with a non-zero digit left of the decimal place or we're losing precision, so when we get a 0 there, we have to shift everything over and adjust the exponent accordingly.  In doing that, we lost our rounding digit.  Guess we need one more for this situation.
+
+<div class="pre" style={{ lineHeight: 1.05 }}>
+&nbsp;Full Precision<sup> </sup>│ Reduced Precision
+&nbsp; 1.0000000×10<sup>4</sup> │   1.000000×10<sup>4</sup>
+\- 0.0005001×10<sup>4</sup> │ \- 0.00050•×10<sup>4</sup>
+\= 0.9994999×10<sup>4</sup> │ \= 0.99949•×10<sup>4</sup>
+≈ 9.995×10<sup>3</sup>     │ ≈ 9.995×10<sup>3</sup>
+</div>
+
+PC adders use three bits for the same purpose in binary, named the guard, round, and sticky bits.
+
+<details>
+<summary>Why don't we have to worry about losing more than one bit to the final normalization step?</summary>
+
+It's pretty easy to think of a problem that requires shifting multiple digits during normalization, e.g.
+
+<div class="pre">
+&nbsp; 1.240×10<sup>4</sup>
+\- 1.232×10<sup>4</sup>
+&nbsp;<!-- Why is this needed to get the same padding as outside of the <details>??? -->
+</div>
+
+<div class="pre">
+&nbsp; 1.240000×10<sup>4</sup>
+\- 1.232000×10<sup>4</sup>
+\= 0.008000×10<sup>4</sup>
+\= 8.000×10<sup>1</sup>
+&nbsp;
+</div>
+
+But the only way to get that is for both values to have the same first n - 1 digits (where n is the amount that gets shifted), which means that they'll both have the same exponent, and neither will get shifted in the initial exponent-matching step, so the calculation will happen at full precision.
+</details>
