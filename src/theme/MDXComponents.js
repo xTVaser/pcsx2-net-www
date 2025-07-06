@@ -1,4 +1,3 @@
-import React from "react";
 // Import the original mapper
 import MDXComponents from "@theme-original/MDXComponents";
 import PCSX2PRLink from "@site/src/mdx/PRLink/PCSX2PRLink";
@@ -7,6 +6,7 @@ import Image from "@site/src/mdx/Image";
 import ImageCompare from "@site/src/mdx/ImageCompare";
 import TextGradient from "@site/src/mdx/TextGradient";
 import BarChart from "@site/src/mdx/BarChart";
+import PreformattedMonospaced from "../mdx/PreformattedMonospaced";
 
 export default {
   // Re-use the default mapping
@@ -17,4 +17,5 @@ export default {
   ImageCompare: ImageCompare,
   TextGradient: TextGradient,
   BarChart: BarChart,
+  PreformattedMonospaced: PreformattedMonospaced,
 };

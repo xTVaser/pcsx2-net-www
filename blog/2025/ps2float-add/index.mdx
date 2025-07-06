@@ -110,13 +110,13 @@ Some of these terms have multiple meanings outside of this article, but will be 
 In particular, "mantissa" is often used to refer to the significand in ps2float code, but this article will use "significand".
 
 #### Parts of a floating-point number
-<div class="pre">
+<PreformattedMonospaced>
 ±2.7432×10<sup>20</sup>
 ││ ╰──┤   ╰┴╴Exponent
 ││    ├─────╴Mantissa
 │╰────┴─────╴Significand
 ╰───────────╴Sign
-</div>
+</PreformattedMonospaced>
 (The mantissa is the part after the decimal point, while the significand includes both the number before and the numbers after.)
 #### Precision
 Precision refers to how small of a difference a number can represent.  This article will use "digits of precision" when talking about decimal numbers, and "bits of precision" when talking about binary numbers.
@@ -174,43 +174,43 @@ If that doesn't fix a game, then its floating point issues lie not in massive nu
 
 Before we look at how PCs or PS2s add floating point numbers, let's first look at how a human might add numbers in scientific notation:
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 4.25×10<sup>4</sup>
 \+ 1.88×10<sup>2</sup>
-</div>
+</PreformattedMonospaced>
 
 First, you need to match the exponents between the two numbers...
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 4.2500×10<sup>4</sup>
 \+ 0.0188×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 Then you add them...
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 4.2500×10<sup>4</sup>
 \+ 0.0188×10<sup>4</sup>
 \= 4.2688×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 And finally round the result to the starting precision, which was 3 digits in our case.  PCs use round nearest-even by default, which rounds to the nearest representable number, with ties going towards the even number (so if you were rounding to the nearest integer, 2.5000 would round to 2, but 3.5000 to 4).
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 4.2500×10<sup>4</sup>
 \+ 0.0188×10<sup>4</sup>
 \= 4.2688×10<sup>4</sup>
 ≈ 4.27×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 PC CPUs also support three other rounding modes, which PCSX2 lets you select.  PCSX2's default, which is closest to what the PS2 does, is round towards zero:
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 4.2500×10<sup>4</sup>
 \+ 0.0188×10<sup>4</sup>
 \= 4.2688×10<sup>4</sup>
 ≈ 4.26×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 But you can also select round positive (which rounds positive numbers away from zero and negative numbers towards zero), or round negative (which does the opposite).
 
@@ -218,107 +218,107 @@ But you can also select round positive (which rounds positive numbers away from 
 
 Okay, let's try another one.
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 4.25×10<sup>4</sup>
 \+ 1.88×10<sup>-4</sup>
-</div>
+</PreformattedMonospaced>
 
 Follow the steps above...
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 4.2500000000×10<sup>4</sup>
 \+ 0.0000000188×10<sup>4</sup>
 \= 4.2500000188×10<sup>4</sup>
 ≈ 4.25×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 Wow, that's a lot of digits we need to handle.  Computers (and humans) don't really like it when an addition with 3 digits of precision explodes to 11 or more digits in their intermediary calculations.  Maybe we can throw some of them away before doing the addition without affecting the result...
 
-<div class="pre" style={{ lineHeight: 1.05 }}>
+<PreformattedMonospaced lineHeight={1.05}>
 &nbsp; Full Precision <sup> </sup> │ Reduced Precision
 &nbsp; 4.2500000000×10<sup>4</sup> │   4.25×10<sup>4</sup>
 \+ 0.0000000188×10<sup>4</sup> │ \+ 0.00×10<sup>4</sup>
 \= 4.2500000188×10<sup>4</sup> │ = 4.25×10<sup>4</sup>
 ≈ 4.25×10<sup>4</sup>         │ ≈ 4.25×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 Looking good, let's try that with the first problem...
 
-<div class="pre" style={{ lineHeight: 1.05 }}>
+<PreformattedMonospaced lineHeight={1.05}>
 Full Precision<sup> </sup>│ Reduced Precision
 &nbsp; 4.2500×10<sup>4</sup>   │   4.25×10<sup>4</sup>
 \+ 0.0188×10<sup>4</sup>   │ \+ 0.01×10<sup>4</sup>
 \= 4.2688×10<sup>4</sup>   │ = 4.26×10<sup>4</sup>
 ≈ 4.27×10<sup>4</sup>     │ ≈ 4.26×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 Oops, we deleted the digit that was getting used for rounding, let's add one more digit to our reduced precision.
 
-<div class="pre" style={{ lineHeight: 1.05 }}>
+<PreformattedMonospaced lineHeight={1.05}>
 Full Precision<sup> </sup>│ Reduced Precision
 &nbsp; 4.2500×10<sup>4</sup>   │   4.250×10<sup>4</sup>
 \+ 0.0188×10<sup>4</sup>   │ \+ 0.018×10<sup>4</sup>
 \= 4.2688×10<sup>4</sup>   │ = 4.268×10<sup>4</sup>
 ≈ 4.27×10<sup>4</sup>     │ ≈ 4.27×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 Okay, let's try another problem
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 4.257×10<sup>4</sup>
 \+ 5.001×10<sup>0</sup>
-</div>
+</PreformattedMonospaced>
 
-<div class="pre" style={{ lineHeight: 1.05 }}>
+<PreformattedMonospaced lineHeight={1.05}>
 &nbsp;Full Precision<sup> </sup>│ Reduced Precision
 &nbsp; 4.2560000×10<sup>4</sup> │   4.2560×10<sup>4</sup>
 \+ 0.0005001×10<sup>4</sup> │ \+ 0.0005×10<sup>4</sup>
 \= 4.2565001×10<sup>4</sup> │ \= 4.2565×10<sup>4</sup>
 ≈ 4.257×10<sup>4</sup>     │ ≈ 4.256×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 Now, when we see a 5 that we need to round, we don't know if it's a perfect tie or not.  In this case, the tie-breaking digit is the lowest one in the full precision calculation, so extending that far would make our reduced precision calculation no longer reduced precision.  What if we added a marker to the end of the reduced precision calculation to indicate whether any of the digits past there are nonzero?  I'll represent that marker with a •.
 
-<div class="pre" style={{ lineHeight: 1.05 }}>
+<PreformattedMonospaced lineHeight={1.05}>
 &nbsp;Full Precision<sup> </sup>│ Reduced Precision
 &nbsp; 4.2560000×10<sup>4</sup> │   4.25600×10<sup>4</sup>
 \+ 0.0005001×10<sup>4</sup> │ \+ 0.0005•×10<sup>4</sup>
 \= 4.2565001×10<sup>4</sup> │ \= 4.2565•×10<sup>4</sup>
 ≈ 4.257×10<sup>4</sup>     │ ≈ 4.257×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
-<div class="pre" style={{ lineHeight: 1.05 }}>
+<PreformattedMonospaced lineHeight={1.05}>
 &nbsp;Full Precision<sup> </sup>│ Reduced Precision
 &nbsp; 4.2560000×10<sup>4</sup> │   4.25600×10<sup>4</sup>
 \+ 0.0005000×10<sup>4</sup> │ \+ 0.00050×10<sup>4</sup>
 \= 4.2565000×10<sup>4</sup> │ \= 4.25650×10<sup>4</sup>
 ≈ 4.256×10<sup>4</sup>     │ ≈ 4.256×10<sup>4</sup>
-</div>
+</PreformattedMonospaced>
 
 And that's all we'd need if we only ever needed to add.  But if we add two numbers of opposite sign, that results in a subtraction, which causes a new problem:
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 1.000×10<sup>4</sup>
 \- 5.001×10<sup>0</sup>
-</div>
+</PreformattedMonospaced>
 
-<div class="pre" style={{ lineHeight: 1.05 }}>
+<PreformattedMonospaced lineHeight={1.05}>
 &nbsp;Full Precision<sup> </sup>│ Reduced Precision
 &nbsp; 1.0000000×10<sup>4</sup> │   1.00000×10<sup>4</sup>
 \- 0.0005001×10<sup>4</sup> │ \- 0.0005•×10<sup>4</sup>
 \= 0.9994999×10<sup>4</sup> │ \= 0.9994•×10<sup>4</sup>
 ≈ 9.995×10<sup>3</sup>     │ ≈ 9.994×10<sup>3</sup>
-</div>
+</PreformattedMonospaced>
 
 We always want to end with a non-zero digit left of the decimal place or we're losing precision, so when we get a 0 there, we have to shift everything over and adjust the exponent accordingly.  In doing that, we lost our rounding digit.  Guess we need one more for this situation.
 
-<div class="pre" style={{ lineHeight: 1.05 }}>
+<PreformattedMonospaced lineHeight={1.05}>
 &nbsp;Full Precision<sup> </sup>│ Reduced Precision
 &nbsp; 1.0000000×10<sup>4</sup> │   1.000000×10<sup>4</sup>
 \- 0.0005001×10<sup>4</sup> │ \- 0.00050•×10<sup>4</sup>
 \= 0.9994999×10<sup>4</sup> │ \= 0.99949•×10<sup>4</sup>
 ≈ 9.995×10<sup>3</sup>     │ ≈ 9.995×10<sup>3</sup>
-</div>
+</PreformattedMonospaced>
 
 PC adders use three bits for the same purpose in binary, named the guard, round, and sticky bits.
 
@@ -327,19 +327,20 @@ PC adders use three bits for the same purpose in binary, named the guard, round,
 
 It's pretty easy to think of a problem that requires shifting multiple digits during normalization, e.g.
 
-<div class="pre">
+<PreformattedMonospaced>
 &nbsp; 1.240×10<sup>4</sup>
 \- 1.232×10<sup>4</sup>
-&nbsp;<!-- Why is this needed to get the same padding as outside of the <details>??? -->
-</div>
+</PreformattedMonospaced>
 
-<div class="pre">
+<br/>
+
+<PreformattedMonospaced>
 &nbsp; 1.240000×10<sup>4</sup>
 \- 1.232000×10<sup>4</sup>
 \= 0.008000×10<sup>4</sup>
 \= 8.000×10<sup>1</sup>
 &nbsp;
-</div>
+</PreformattedMonospaced>
 
 But the only way to get that is for both values to have the same first n - 1 digits (where n is the amount that gets shifted), which means that they'll both have the same exponent, and neither will get shifted in the initial exponent-matching step, so the calculation will happen at full precision.
 </details>
